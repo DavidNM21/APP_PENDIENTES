@@ -124,6 +124,7 @@
                     <th>Descripción</th>
                     <th>ASAP</th>
                     <th>Puntaje</th>
+                    <th>Fecha y Hora</th>
                 </tr>
             </thead>
             <tbody id="completedTaskList"></tbody>
@@ -131,7 +132,7 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPAnDlt7TMs14qVEL2YWwFLuAWQOeaYuzgip3PyjZSmRZvipU8BWuopXlslzQfUCHSZA/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysXArXjbJh5Vuss-QwkJO4lYgxWIUnWNgfbNe91AAUBM5VxTWiJCASYvXOaJsofNC4Mg/exec';
         let tasks = [];
 
         // Calcular puntaje
@@ -139,16 +140,22 @@
             return parseInt(asap) + (parseInt(impact) * 10) + (parseInt(difficulty) * 5) + (parseInt(time) * 5);
         }
 
-        // Actualizar puntaje en tiempo real
+        // Función para calcular y mostrar el puntaje
+        function updateScore() {
+            const asap = document.getElementById('asap').value;
+            const impact = document.getElementById('impact').value;
+            const difficulty = document.getElementById('difficulty').value;
+            const time = document.getElementById('time').value;
+            document.getElementById('score').value = calculateScore(asap, impact, difficulty, time);
+        }
+
+        // Actualizar puntaje en tiempo real al cambiar los valores
         document.querySelectorAll('#asap, #impact, #difficulty, #time').forEach(input => {
-            input.addEventListener('change', () => {
-                const asap = document.getElementById('asap').value;
-                const impact = document.getElementById('impact').value;
-                const difficulty = document.getElementById('difficulty').value;
-                const time = document.getElementById('time').value;
-                document.getElementById('score').value = calculateScore(asap, impact, difficulty, time);
-            });
+            input.addEventListener('change', updateScore);
         });
+
+        // Calcular el puntaje inicial al cargar la página
+        window.addEventListener('load', updateScore);
 
         // Manejar el formulario
         document.getElementById('taskForm').addEventListener('submit', async (e) => {
@@ -187,6 +194,7 @@
                     document.getElementById('taskForm').reset();
                     document.getElementById('score').value = '';
                     document.getElementById('status').value = 'No Realizado';
+                    updateScore();
                 } else {
                     alert('Error al guardar tarea: ' + result.message);
                 }
@@ -217,12 +225,20 @@
         // Actualizar estatus
         async function updateTaskStatus(index, newStatus) {
             try {
+                const now = new Date();
+                const datetime = now.toLocaleString('es-MX', { hour12: false }); // Combina fecha y hora (e.g., "11/04/2025 15:48:38")
                 console.log('Actualizando tarea en índice:', index, 'a estado:', newStatus);
+                console.log('Enviando datetime:', datetime);
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'updateStatus', rowIndex: index + 0, status: newStatus })
+                    body: JSON.stringify({
+                        action: 'updateStatus',
+                        rowIndex: index + 2,
+                        status: newStatus,
+                        datetime: datetime
+                    })
                 });
                 console.log('Respuesta del servidor:', response);
                 await loadTasks();
@@ -242,7 +258,7 @@
                 .sort((a, b) => b.score - a.score);
 
             pendingTasks.forEach((task, displayIndex) => {
-                const originalIndex = tasks.indexOf(task); // Índice en el arreglo original
+                const originalIndex = tasks.indexOf(task);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${task.description}</td>
@@ -270,6 +286,7 @@
                     <td>${task.description}</td>
                     <td>${task.asap}</td>
                     <td>${task.score}</td>
+                    <td>${task.datetime || ''}</td>
                 `;
                 completedTaskList.appendChild(row);
             });
