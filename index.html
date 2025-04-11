@@ -106,9 +106,6 @@
                 <tr>
                     <th>Descripción</th>
                     <th>ASAP</th>
-                    <th>Impacto</th>
-                    <th>Dificultad</th>
-                    <th>Tiempo</th>
                     <th>Puntaje</th>
                     <th>Estatus</th>
                     <th>Acción</th>
@@ -120,7 +117,7 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5xgcIviBLvT8hfwhiHmTncOdOVTrUdsUrCC82Kyo_bifrgNXx6qQ1nZ7PhsNoOaxiYA/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPAnDlt7TMs14qVEL2YWwFLuAWQOeaYuzgip3PyjZSmRZvipU8BWuopXlslzQfUCHSZA/exec';
         let tasks = [];
 
         // Calcular puntaje
@@ -207,13 +204,12 @@
                 console.log('Actualizando tarea en índice:', index, 'a estado:', newStatus);
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Usamos no-cors para evitar el error CORS
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'updateStatus', rowIndex: index + 2, status: newStatus }) // +2 para ajustar al índice de la hoja
+                    body: JSON.stringify({ action: 'updateStatus', rowIndex: index + 2, status: newStatus })
                 });
                 console.log('Respuesta del servidor:', response);
-                // No podemos leer response.json() con no-cors, así que asumimos éxito y recargamos
-                await loadTasks(); // Recargar tareas para sincronizar con la hoja
+                await loadTasks();
                 alert('Tarea marcada como Realizado');
             } catch (error) {
                 console.error('Error al actualizar estatus:', error);
@@ -230,14 +226,11 @@
                 .sort((a, b) => b.score - a.score);
 
             pendingTasks.forEach((task) => {
-                const index = tasks.indexOf(task); // Usamos el índice del arreglo completo
+                const index = tasks.indexOf(task);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${task.description}</td>
                     <td>${task.asap}</td>
-                    <td>${task.impact}</td>
-                    <td>${task.difficulty}</td>
-                    <td>${task.time}</td>
                     <td>${task.score}</td>
                     <td>${task.status}</td>
                     <td>
