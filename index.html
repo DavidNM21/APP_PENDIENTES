@@ -222,7 +222,7 @@
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'updateStatus', rowIndex: index + 2, status: newStatus })
+                    body: JSON.stringify({ action: 'updateStatus', rowIndex: index + 0, status: newStatus })
                 });
                 console.log('Respuesta del servidor:', response);
                 await loadTasks();
@@ -241,15 +241,15 @@
                 .filter(task => task.status === 'No Realizado')
                 .sort((a, b) => b.score - a.score);
 
-            pendingTasks.forEach((task) => {
-                const index = tasks.indexOf(task);
+            pendingTasks.forEach((task, displayIndex) => {
+                const originalIndex = tasks.indexOf(task); // Índice en el arreglo original
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${task.description}</td>
                     <td>${task.asap}</td>
                     <td>${task.score}</td>
                     <td>
-                        <button onclick="markAsDone(${index})">Marcar como Realizado</button>
+                        <button onclick="markAsDone(${originalIndex})">Marcar como Realizado</button>
                     </td>
                 `;
                 taskList.appendChild(row);
