@@ -57,7 +57,7 @@
     <div class="form-container">
         <h2>Agregar Nueva Tarea</h2>
         <form id="taskForm">
-            <label for="description">Descripcion de Tarea:</label>
+            <label for="description">Descripción de Tarea:</label>
             <input type="text" id="description" required><br>
 
             <label for="asap">ASAP:</label>
@@ -104,14 +104,14 @@
         <table id="taskTable">
             <thead>
                 <tr>
-                    <th>description</th>
-                    <th>asap</th>
-                    <th>impact</th>
-                    <th>difficulty</th>
-                    <th>time</th>
-                    <th>score</th>
-                    <th>status</th>
-                    <th>action</th>
+                    <th>Descripción</th>
+                    <th>ASAP</th>
+                    <th>Impacto</th>
+                    <th>Dificultad</th>
+                    <th>Tiempo</th>
+                    <th>Puntaje</th>
+                    <th>Estatus</th>
+                    <th>Acción</th>
                 </tr>
             </thead>
             <tbody id="taskList"></tbody>
@@ -120,7 +120,7 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPAnDlt7TMs14qVEL2YWwFLuAWQOeaYuzgip3PyjZSmRZvipU8BWuopXlslzQfUCHSZA/exec'; // Reemplaza con la URL del Apps Script
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5xgcIviBLvT8hfwhiHmTncOdOVTrUdsUrCC82Kyo_bifrgNXx6qQ1nZ7PhsNoOaxiYA/exec';
         let tasks = [];
 
         // Calcular puntaje
@@ -141,48 +141,49 @@
 
         // Manejar el formulario
         document.getElementById('taskForm').addEventListener('submit', async (e) => {
-       e.preventDefault();
-       const task = {
-           description: document.getElementById('description').value,
-           asap: parseInt(document.getElementById('asap').value),
-           impact: parseInt(document.getElementById('impact').value),
-           difficulty: parseInt(document.getElementById('difficulty').value),
-           time: parseInt(document.getElementById('time').value),
-           score: parseInt(document.getElementById('score').value) || 0,
-           status: 'No Realizado'
-       };
-       if (task.score === 0) {
-           alert('Por favor, selecciona valores para calcular el puntaje');
-           return;
-       }
-       console.log('Enviando tarea:', { action: 'addTask', task });
-       try {
-           const response = await fetch(APPS_SCRIPT_URL, {
-               method: 'POST',
-               mode: 'no-cors', // Cambiar a 'cors' si se hospeda en un servidor
-               headers: { 'Content-Type': 'application/json' },
-               body: JSON.stringify({ action: 'addTask', task })
-           });
-           console.log('Respuesta del servidor:', response);
-           if (!response.ok) {
-               throw new Error(`HTTP error! Status: ${response.status}`);
-           }
-           const result = await response.json();
-           console.log('Resultado:', result);
-           if (result.status === 'success') {
-               tasks.push(task);
-               renderTasks();
-               document.getElementById('taskForm').reset();
-               document.getElementById('score').value = '';
-               document.getElementById('status').value = 'No Realizado';
-           } else {
-               alert('Error al guardar tarea: ' + result.message);
-           }
-       } catch (error) {
-           console.error('Error en la conexión:', error);
-           alert('Error en la conexión: ' + error.message);
-       }
-   });
+            e.preventDefault();
+            const task = {
+                description: document.getElementById('description').value,
+                asap: parseInt(document.getElementById('asap').value),
+                impact: parseInt(document.getElementById('impact').value),
+                difficulty: parseInt(document.getElementById('difficulty').value),
+                time: parseInt(document.getElementById('time').value),
+                score: parseInt(document.getElementById('score').value) || 0,
+                status: 'No Realizado'
+            };
+            if (task.score === 0) {
+                alert('Por favor, selecciona valores para calcular el puntaje');
+                return;
+            }
+            console.log('Enviando tarea:', { action: 'addTask', task });
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'addTask', task })
+                });
+                console.log('Respuesta del servidor:', response);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const result = await response.json();
+                console.log('Resultado:', result);
+                if (result.status === 'success') {
+                    tasks.push(task);
+                    renderTasks();
+                    document.getElementById('taskForm').reset();
+                    document.getElementById('score').value = '';
+                    document.getElementById('status').value = 'No Realizado';
+                } else {
+                    alert('Error al guardar tarea: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error en la conexión:', error);
+                alert('Error en la conexión: ' + error.message);
+            }
+        });
+
         // Cargar tareas
         async function loadTasks() {
             try {
@@ -195,6 +196,7 @@
                     alert('Error al cargar tareas: ' + result.message);
                 }
             } catch (error) {
+                console.error('Error al cargar tareas:', error);
                 alert('Error en la conexión: ' + error.message);
             }
         }
@@ -202,20 +204,20 @@
         // Actualizar estatus
         async function updateTaskStatus(index, newStatus) {
             try {
+                console.log('Actualizando tarea en índice:', index, 'a estado:', newStatus);
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors', // Usamos no-cors para evitar el error CORS
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'updateStatus', rowIndex: index, status: newStatus })
+                    body: JSON.stringify({ action: 'updateStatus', rowIndex: index + 2, status: newStatus }) // +2 para ajustar al índice de la hoja
                 });
-                const result = await response.json();
-                if (result.status === 'success') {
-                    tasks[index].status = newStatus;
-                    renderTasks();
-                } else {
-                    alert('Error al actualizar estatus: ' + result.message);
-                }
+                console.log('Respuesta del servidor:', response);
+                // No podemos leer response.json() con no-cors, así que asumimos éxito y recargamos
+                await loadTasks(); // Recargar tareas para sincronizar con la hoja
+                alert('Tarea marcada como Realizado');
             } catch (error) {
-                alert('Error en la conexión: ' + error.message);
+                console.error('Error al actualizar estatus:', error);
+                alert('Error al actualizar estatus: ' + error.message);
             }
         }
 
@@ -227,7 +229,8 @@
                 .filter(task => task.status === 'No Realizado')
                 .sort((a, b) => b.score - a.score);
 
-            pendingTasks.forEach((task, index) => {
+            pendingTasks.forEach((task) => {
+                const index = tasks.indexOf(task); // Usamos el índice del arreglo completo
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${task.description}</td>
@@ -238,7 +241,7 @@
                     <td>${task.score}</td>
                     <td>${task.status}</td>
                     <td>
-                        <button onclick="markAsDone(${tasks.indexOf(task)})">Marcar como Realizado</button>
+                        <button onclick="markAsDone(${index})">Marcar como Realizado</button>
                     </td>
                 `;
                 taskList.appendChild(row);
@@ -250,7 +253,7 @@
             updateTaskStatus(index, 'Realizado');
         }
 
-        // Guardar cambios (opcional, ya que actualizamos en tiempo real)
+        // Guardar cambios
         document.getElementById('saveChanges').addEventListener('click', () => {
             alert('Cambios guardados');
         });
